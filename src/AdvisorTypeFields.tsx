@@ -2,24 +2,29 @@
 
 import { useMemo, useState } from "react";
 import { Plus, Search, X } from "lucide-react";
-import type { AdvisoryType, CourseOption } from "./types";
-import { careerTrack, standaloneRoles } from "./roles";
-import { needsCourses, needsDepartment } from "./derive";
+import type { CourseOption, Designation } from "./types";
+import {
+  designationLabel,
+  isDesignationBookable,
+  setIsBookable,
+  setNeedsCourses,
+  setNeedsDepartment,
+} from "./derive";
 import { Field, Input, Select } from "./ui";
 
 /**
- * The advisory-role field group — the shared, source-of-truth part of the Invite New Advisor
- * form (Axis 2). Controlled: the parent owns the values. Shows the Career track grouped in the
- * type dropdown, and the role-specific field — Department (Faculty or Department Head) or
- * Courses (Tutor). A Department Head identifies the department they head, and may also serve as
- * that department's Faculty sponsor in the internship approval chain.
- *
- * WIRE: Lynn -> the role/designation, department link, courses, and prefix have no advisor-record
- * field yet; only the derived bookable service (advisory_type_id) persists. See the hubs' work order.
+ * The designation field group — the shared, source-of-truth part of the Invite New Advisor form
+ * (2026-08-11 model). Controlled: the parent owns the values. Designations are a SET (checkbox
+ * multi-select) whose vocabulary + bookable mapping come from `GET /reference/advisor-designations`
+ * (the parent fetches it and passes `designations`). The bookable advisory type is DERIVED by the
+ * platform — Faculty wins, a set mapping to nothing is "not bookable" — so we render that from data
+ * rather than hard-coding names. Shows the role-specific field: Department (Faculty / Department
+ * Head) or Courses (Tutor).
  */
 export function AdvisorTypeFields({
-  advisoryType,
-  onAdvisoryTypeChange,
+  designations,
+  selectedIds,
+  onSelectedChange,
   prefix,
   onPrefixChange,
   department,
@@ -29,8 +34,9 @@ export function AdvisorTypeFields({
   catalog,
   departments,
 }: {
-  advisoryType: AdvisoryType;
-  onAdvisoryTypeChange: (t: AdvisoryType) => void;
+  designations: Designation[];
+  selectedIds: number[];
+  onSelectedChange: (ids: number[]) => void;
   prefix: string;
   onPrefixChange: (p: string) => void;
   department: string;
@@ -40,6 +46,19 @@ export function AdvisorTypeFields({
   catalog: CourseOption[];
   departments: string[];
 }) {
+  const selected = designations.filter((d) => selectedIds.includes(d.id));
+  const showDepartment = setNeedsDepartment(selected);
+  const showCourses = setNeedsCourses(selected);
+  const bookable = setIsBookable(selected);
+
+  function toggle(id: number) {
+    onSelectedChange(
+      selectedIds.includes(id)
+        ? selectedIds.filter((x) => x !== id)
+        : [...selectedIds, id],
+    );
+  }
+
   return (
     <>
       <Field label="Prefix (optional)">
@@ -49,32 +68,37 @@ export function AdvisorTypeFields({
         </Select>
       </Field>
 
-      <Field label="Advisor Type">
-        <Select
-          value={advisoryType}
-          onChange={(e) => onAdvisoryTypeChange(e.target.value as AdvisoryType)}
-        >
-          <optgroup label="Career track">
-            {careerTrack.map((r) => (
-              <option key={r.type} value={r.type}>
-                {r.label}
-              </option>
-            ))}
-          </optgroup>
-          {standaloneRoles.map((r) => (
-            <option key={r.type} value={r.type}>
-              {r.label}
-            </option>
+      <Field label="Designations">
+        <div className="rounded-lg border border-border bg-transparent p-1">
+          {designations.map((d) => (
+            <label
+              key={d.id}
+              className="flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2 text-sm hover:bg-hover"
+            >
+              <input
+                type="checkbox"
+                checked={selectedIds.includes(d.id)}
+                onChange={() => toggle(d.id)}
+                className="size-4 accent-indigo"
+              />
+              <span className="text-fg">{designationLabel(d.name)}</span>
+              {!isDesignationBookable(d) && (
+                <span className="text-xs text-muted">· not bookable</span>
+              )}
+            </label>
           ))}
-        </Select>
+        </div>
       </Field>
 
-      {needsDepartment(advisoryType) && (
-        <Field
-          label={
-            advisoryType === "Department Head" ? "Department they head" : "Department"
-          }
-        >
+      {selectedIds.length > 0 && !bookable && (
+        <p className="-mt-2 mb-1 text-xs text-muted">
+          This advisor won&apos;t be bookable for appointments — the selected designations are
+          internship-approval roles, not booked services.
+        </p>
+      )}
+
+      {showDepartment && (
+        <Field label="Department">
           <Select value={department} onChange={(e) => onDepartmentChange(e.target.value)}>
             <option value="" disabled>
               Select a department
@@ -88,7 +112,7 @@ export function AdvisorTypeFields({
         </Field>
       )}
 
-      {needsCourses(advisoryType) && (
+      {showCourses && (
         <Field label="Courses">
           <CourseMultiSelect
             catalog={catalog}

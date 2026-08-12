@@ -4,6 +4,8 @@ export type {
   AdvisoryRole,
   CourseOption,
   AdvisorTypeValues,
+  Designation,
+  DesignationValues,
 } from "./types";
 export {
   advisoryRoles,
@@ -17,5 +19,12 @@ export {
   isBookable,
   needsDepartment,
   needsCourses,
+  designationLabel,
+  isDesignationBookable,
+  designationNeedsDepartment,
+  designationNeedsCourses,
+  setNeedsDepartment,
+  setNeedsCourses,
+  setIsBookable,
 } from "./derive";
 export { AdvisorTypeFields } from "./AdvisorTypeFields";

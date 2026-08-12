@@ -29,3 +29,29 @@ export interface AdvisorTypeValues {
   department: string;
   courses: string[];
 }
+
+/**
+ * A designation from `GET /reference/advisor-designations` (the 2026-08-11 model). WHAT the
+ * advisor IS, selected as a SET; the bookable advisory type is DERIVED from it (Faculty wins,
+ * a set mapping to nothing is "not bookable").
+ */
+export interface Designation {
+  /** `advisor_designation_id` — the int carried in `designation_ids`. */
+  id: number;
+  /** Raw backend name, e.g. "Career", "DepartmentHead", "PeerMentor". */
+  name: string;
+  /**
+   * The bookable advisory type this designation confers, or `null` when it confers none
+   * ("not bookable"). ⚠️ CAREER MAPS TO 0 — always compare against `null`, never truthiness
+   * (0 is falsy), or a Career advisor reads as not bookable.
+   */
+  advisoryTypeId: number | null;
+}
+
+/** Everything the designation field group collects (the write path). */
+export interface DesignationValues {
+  designationIds: number[];
+  prefix: string;
+  department: string;
+  courses: string[];
+}
