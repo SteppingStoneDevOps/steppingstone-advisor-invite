@@ -79,3 +79,18 @@ export function setNeedsCourses(selected: Designation[]): boolean {
 export function setIsBookable(selected: Designation[]): boolean {
   return selected.some(isDesignationBookable);
 }
+
+/**
+ * HARD RULE (Eric, 2026-08-12): the only multi-designation a single advisor may hold is exactly
+ * {Faculty, Department Head}. Every other set must be a single designation — any other combination
+ * (e.g. Peer Mentor + Peer Advisor, or Career + anything) is invalid. The platform enforces this on
+ * write; the picker enforces it up front so an invalid set is never submitted.
+ */
+export function isValidDesignationSet(selected: Designation[]): boolean {
+  if (selected.length <= 1) return true;
+  if (selected.length === 2) {
+    const names = new Set(selected.map((d) => d.name));
+    return names.has("Faculty") && names.has("DepartmentHead");
+  }
+  return false;
+}

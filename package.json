@@ -1,6 +1,6 @@
 {
   "name": "@steppingstone/advisor-invite",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "description": "Shared Axis-2 advisor role taxonomy + Invite-New-Advisor field group for the SteppingStone hubs (Advisor Hub is the source of truth). Consumed as source via Next transpilePackages.",
   "type": "module",

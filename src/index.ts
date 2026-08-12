@@ -26,5 +26,6 @@ export {
   setNeedsDepartment,
   setNeedsCourses,
   setIsBookable,
+  isValidDesignationSet,
 } from "./derive";
 export { AdvisorTypeFields } from "./AdvisorTypeFields";

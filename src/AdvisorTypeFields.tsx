@@ -6,6 +6,7 @@ import type { CourseOption, Designation } from "./types";
 import {
   designationLabel,
   isDesignationBookable,
+  isValidDesignationSet,
   setIsBookable,
   setNeedsCourses,
   setNeedsDepartment,
@@ -52,11 +53,16 @@ export function AdvisorTypeFields({
   const bookable = setIsBookable(selected);
 
   function toggle(id: number) {
-    onSelectedChange(
-      selectedIds.includes(id)
-        ? selectedIds.filter((x) => x !== id)
-        : [...selectedIds, id],
-    );
+    if (selectedIds.includes(id)) {
+      onSelectedChange(selectedIds.filter((x) => x !== id));
+      return;
+    }
+    // Enforce the co-designation rule up front so an invalid set is never submitted: a single
+    // designation, or exactly {Faculty, Department Head}. Adding anything that would break that
+    // switches the selection to just the clicked one (single-select with one allowed pairing).
+    const nextIds = [...selectedIds, id];
+    const next = designations.filter((d) => nextIds.includes(d.id));
+    onSelectedChange(isValidDesignationSet(next) ? nextIds : [id]);
   }
 
   return (
@@ -88,6 +94,9 @@ export function AdvisorTypeFields({
             </label>
           ))}
         </div>
+        <p className="mt-1.5 text-xs text-muted">
+          Pick one designation. Faculty and Department Head are the only two that can be combined.
+        </p>
       </Field>
 
       {selectedIds.length > 0 && !bookable && (
