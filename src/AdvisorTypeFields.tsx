@@ -5,7 +5,6 @@ import { Plus, Search, X } from "lucide-react";
 import type { CourseOption, Designation } from "./types";
 import {
   designationLabel,
-  isDesignationBookable,
   isValidDesignationSet,
   setIsBookable,
   setNeedsCourses,
@@ -88,9 +87,6 @@ export function AdvisorTypeFields({
                 className="size-4 accent-indigo"
               />
               <span className="text-fg">{designationLabel(d.name)}</span>
-              {!isDesignationBookable(d) && (
-                <span className="text-xs text-muted">· not bookable</span>
-              )}
             </label>
           ))}
         </div>
