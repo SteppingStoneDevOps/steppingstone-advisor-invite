@@ -6,7 +6,6 @@ import type { CourseOption, Designation } from "./types";
 import {
   designationLabel,
   isValidDesignationSet,
-  setIsBookable,
   setNeedsCourses,
   setNeedsDepartment,
 } from "./derive";
@@ -49,7 +48,6 @@ export function AdvisorTypeFields({
   const selected = designations.filter((d) => selectedIds.includes(d.id));
   const showDepartment = setNeedsDepartment(selected);
   const showCourses = setNeedsCourses(selected);
-  const bookable = setIsBookable(selected);
 
   function toggle(id: number) {
     if (selectedIds.includes(id)) {
@@ -94,13 +92,6 @@ export function AdvisorTypeFields({
           Pick one designation. Faculty and Department Head are the only two that can be combined.
         </p>
       </Field>
-
-      {selectedIds.length > 0 && !bookable && (
-        <p className="-mt-2 mb-1 text-xs text-muted">
-          This advisor won&apos;t be bookable for appointments — the selected designations are
-          internship-approval roles, not booked services.
-        </p>
-      )}
 
       {showDepartment && (
         <Field label="Department">
