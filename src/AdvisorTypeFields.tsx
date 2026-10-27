@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import { Plus, Search, X } from "lucide-react";
 import type { CourseOption, Designation } from "./types";
 import {
@@ -9,7 +9,7 @@ import {
   setNeedsCourses,
   setNeedsDepartment,
 } from "./derive";
-import { Field, Input, Select } from "./ui";
+import { Field, Input, Select, labelBase } from "./ui";
 
 /**
  * The designation field group — the shared, source-of-truth part of the Invite New Advisor form
@@ -48,6 +48,7 @@ export function AdvisorTypeFields({
   const selected = designations.filter((d) => selectedIds.includes(d.id));
   const showDepartment = setNeedsDepartment(selected);
   const showCourses = setNeedsCourses(selected);
+  const designationsHintId = `${useId()}-hint`;
 
   function toggle(id: number) {
     if (selectedIds.includes(id)) {
@@ -71,7 +72,9 @@ export function AdvisorTypeFields({
         </Select>
       </Field>
 
-      <Field label="Designations">
+      {/* A checkbox group is named by its legend (WCAG 1.3.1 / 4.1.2), not by a <label>. */}
+      <fieldset className="mb-4 min-w-0 border-0 p-0" aria-describedby={designationsHintId}>
+        <legend className={labelBase}>Designations</legend>
         <div className="rounded-lg border border-border bg-transparent p-1">
           {designations.map((d) => (
             <label
@@ -88,10 +91,10 @@ export function AdvisorTypeFields({
             </label>
           ))}
         </div>
-        <p className="mt-1.5 text-xs text-muted">
+        <p id={designationsHintId} className="mt-1.5 text-xs text-muted">
           Pick one designation. Faculty and Department Head are the only two that can be combined.
         </p>
-      </Field>
+      </fieldset>
 
       {showDepartment && (
         <Field label="Department">
@@ -124,10 +127,13 @@ export function AdvisorTypeFields({
 /* Searchable multi-select over the university's course catalog. The catalog is uploaded when
    the university client is set up (WIRE: Lynn). */
 function CourseMultiSelect({
+  id,
   catalog,
   selected,
   onChange,
 }: {
+  /** Set by the wrapping `Field`; lands on the search input so the label click focuses it. */
+  id?: string;
   catalog: CourseOption[];
   selected: string[];
   onChange: (next: string[]) => void;
@@ -168,6 +174,8 @@ function CourseMultiSelect({
       <div className="relative">
         <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-faint" />
         <Input
+          id={id}
+          aria-label="Search courses"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search courses…"
